@@ -11,7 +11,7 @@ from flask import Flask, request, jsonify, send_file, Response, render_template
 from werkzeug.utils import secure_filename
 from checker import run_checker
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static', static_url_path='/static')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -91,6 +91,12 @@ def process_job(job_id, input_path, output_path, original_filename):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+@app.route('/template')
+def download_template():
+    template_path = os.path.join(BASE_DIR, 'static', 'template_data_mahasiswa.xlsx')
+    return send_file(template_path, as_attachment=True, download_name='Template_Data_Mahasiswa.xlsx')
 
 
 @app.route('/upload', methods=['POST'])

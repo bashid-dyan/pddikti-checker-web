@@ -3,106 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PDDIKTI Checker</title>
+    <title>PDDIKTI Checker - BPK RI</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50: '#f0f4ff', 100: '#dbe4ff', 200: '#bac8ff', 300: '#91a7ff', 400: '#748ffc', 500: '#5c7cfa', 600: '#4c6ef5', 700: '#4263eb', 800: '#3b5bdb', 900: '#364fc7' },
+                        accent: { 50: '#fff3e0', 100: '#ffe0b2', 200: '#ffcc80', 300: '#ffb74d', 400: '#ffa726', 500: '#ff9800', 600: '#fb8c00', 700: '#f57c00' },
+                        mint: { 50: '#e6fcf5', 100: '#c3fae8', 200: '#96f2d7', 300: '#63e6be', 400: '#38d9a9', 500: '#20c997' },
+                        coral: { 50: '#fff5f5', 100: '#ffe3e3', 200: '#ffc9c9', 300: '#ffa8a8', 400: '#ff8787', 500: '#ff6b6b' },
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .drop-zone.dragover { border-color: #3b82f6; background: #eff6ff; }
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .drop-zone.dragover { border-color: #4c6ef5; background: #f0f4ff; }
         #log-container { max-height: 320px; overflow-y: auto; }
         #log-container::-webkit-scrollbar { width: 6px; }
-        #log-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-        .fade-in { animation: fadeIn 0.3s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        .status-badge { display: inline-block; padding: 2px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+        #log-container::-webkit-scrollbar-thumb { background: #bac8ff; border-radius: 3px; }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        .status-badge { display: inline-block; padding: 2px 12px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+        .gradient-bg { background: linear-gradient(135deg, #4c6ef5 0%, #7c3aed 50%, #f59e0b 100%); }
+        .gradient-text { background: linear-gradient(135deg, #4c6ef5, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .card { background: white; border-radius: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04); border: 1px solid #f1f3f5; }
+        .btn-primary { background: linear-gradient(135deg, #4c6ef5, #7c3aed); transition: all 0.2s; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(76,110,245,0.35); }
+        .btn-success { background: linear-gradient(135deg, #20c997, #12b886); transition: all 0.2s; }
+        .btn-success:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(32,201,151,0.35); }
+        .hero-pattern { background-image: radial-gradient(circle at 20% 50%, rgba(76,110,245,0.08) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(124,58,237,0.06) 0%, transparent 50%), radial-gradient(circle at 60% 80%, rgba(245,158,11,0.05) 0%, transparent 50%); }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-gray-50 min-h-screen hero-pattern">
     <!-- Header -->
-    <header class="bg-white border-b shadow-sm">
-        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center gap-3">
-            <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
+    <header class="bg-white/80 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <img src="/static/bpk-logo.png" alt="Logo BPK" class="w-12 h-12 object-contain">
+                <div>
+                    <h1 class="text-xl font-bold gradient-text">PDDIKTI Checker</h1>
+                    <p class="text-xs text-gray-400">Cek Status Kemahasiswaan Otomatis</p>
+                </div>
             </div>
-            <div>
-                <h1 class="text-xl font-bold text-gray-900">PDDIKTI Checker</h1>
-                <p class="text-sm text-gray-500">Cek status kemahasiswaan otomatis dari PDDIKTI</p>
-            </div>
+            <a href="/template" class="hidden sm:flex items-center gap-1.5 text-sm font-medium text-primary-600 hover:text-primary-700 bg-primary-50 hover:bg-primary-100 px-3 py-1.5 rounded-lg transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Download Template
+            </a>
         </div>
     </header>
 
     <main class="max-w-4xl mx-auto px-4 py-8 space-y-6">
+        <!-- Hero / Branding -->
+        <section class="text-center py-4 fade-in">
+            <div class="inline-flex items-center gap-2 bg-accent-50 text-accent-700 text-xs font-semibold px-3 py-1 rounded-full mb-3">
+                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                Tools BPK RI
+            </div>
+            <h2 class="text-3xl font-extrabold text-gray-900 mb-1">PDDIKTI Checker</h2>
+            <p class="text-lg text-gray-500 mb-1">by <span class="font-bold gradient-text">Bashid Effendi</span></p>
+            <p class="text-sm text-gray-400 max-w-md mx-auto">Upload file Excel berisi data mahasiswa, sistem akan otomatis mengecek status di PDDIKTI Kemdiktisaintek</p>
+        </section>
+
         <!-- Upload Section -->
-        <section id="upload-section" class="bg-white rounded-xl shadow-sm border p-6">
-            <h2 class="text-lg font-semibold text-gray-800 mb-4">Upload File Excel</h2>
-            <div id="drop-zone" class="drop-zone border-2 border-dashed border-gray-300 rounded-xl p-10 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all">
-                <svg class="mx-auto w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                </svg>
-                <p class="text-gray-600 font-medium">Drag & drop file Excel di sini</p>
+        <section id="upload-section" class="card p-6 fade-in">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-gray-800">Upload File Excel</h2>
+                <a href="/template" class="sm:hidden flex items-center gap-1 text-xs font-medium text-primary-600 hover:text-primary-700">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    Template
+                </a>
+            </div>
+            <div id="drop-zone" class="drop-zone border-2 border-dashed border-primary-200 rounded-2xl p-10 text-center cursor-pointer hover:border-primary-400 hover:bg-primary-50/50 transition-all">
+                <div class="w-16 h-16 mx-auto mb-4 bg-primary-100 rounded-2xl flex items-center justify-center">
+                    <svg class="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                </div>
+                <p class="text-gray-700 font-semibold">Drag & drop file Excel di sini</p>
                 <p class="text-sm text-gray-400 mt-1">atau klik untuk pilih file (.xlsx)</p>
                 <input type="file" id="file-input" accept=".xlsx" class="hidden">
             </div>
-            <div id="file-info" class="hidden mt-3 p-3 bg-blue-50 rounded-lg flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
-                    <span id="file-name" class="text-sm font-medium text-blue-800"></span>
+            <!-- Format info -->
+            <div class="mt-4 p-3 bg-amber-50 border border-amber-100 rounded-xl">
+                <p class="text-xs font-semibold text-amber-700 mb-1">Format kolom yang dibutuhkan:</p>
+                <div class="flex flex-wrap gap-2">
+                    <span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md font-medium">NO</span>
+                    <span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md font-medium">NIM</span>
+                    <span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md font-medium">NAMA MAHASISWA</span>
+                    <span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md font-medium">L/P</span>
+                    <span class="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md font-medium">PERGURUAN TINGGI</span>
                 </div>
-                <button id="btn-remove" class="text-sm text-red-500 hover:text-red-700">Hapus</button>
+                <p class="text-xs text-amber-600 mt-1.5">Belum punya file? <a href="/template" class="underline font-semibold hover:text-amber-800">Download template di sini</a></p>
             </div>
-            <button id="btn-upload" class="hidden mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
+            <div id="file-info" class="hidden mt-3 p-3 bg-primary-50 rounded-xl flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                    </div>
+                    <span id="file-name" class="text-sm font-semibold text-primary-800"></span>
+                </div>
+                <button id="btn-remove" class="text-sm text-coral-500 hover:text-coral-600 font-medium">Hapus</button>
+            </div>
+            <button id="btn-upload" class="hidden mt-4 w-full btn-primary text-white font-bold py-3.5 px-6 rounded-xl text-base">
                 Mulai Proses
             </button>
         </section>
 
         <!-- Progress Section -->
-        <section id="progress-section" class="hidden bg-white rounded-xl shadow-sm border p-6 fade-in">
+        <section id="progress-section" class="hidden card p-6 fade-in">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-gray-800">Proses Pengecekan</h2>
-                <span id="progress-status" class="status-badge bg-yellow-100 text-yellow-700">Memproses</span>
+                <h2 class="text-lg font-bold text-gray-800">Proses Pengecekan</h2>
+                <span id="progress-status" class="status-badge bg-amber-100 text-amber-700">Memproses</span>
             </div>
-            <!-- Progress Bar -->
             <div class="mb-4">
-                <div class="flex justify-between text-sm text-gray-600 mb-1">
-                    <span id="progress-text">0 / 0</span>
-                    <span id="progress-percent">0%</span>
+                <div class="flex justify-between text-sm text-gray-500 mb-1.5">
+                    <span id="progress-text" class="font-medium">0 / 0</span>
+                    <span id="progress-percent" class="font-bold text-primary-600">0%</span>
                 </div>
-                <div class="w-full bg-gray-200 rounded-full h-3">
-                    <div id="progress-bar" class="bg-blue-600 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+                <div class="w-full bg-gray-100 rounded-full h-3.5 overflow-hidden">
+                    <div id="progress-bar" class="h-3.5 rounded-full transition-all duration-300 bg-gradient-to-r from-primary-500 to-purple-500" style="width: 0%"></div>
                 </div>
             </div>
-            <!-- Log -->
-            <div id="log-container" class="bg-gray-50 rounded-lg p-3 font-mono text-xs space-y-1">
+            <div id="log-container" class="bg-gray-50 rounded-xl p-3 font-mono text-xs space-y-1 border border-gray-100">
                 <p class="text-gray-400">Menunggu data...</p>
             </div>
-            <!-- Download button (appears when done) -->
             <div id="download-section" class="hidden mt-4 fade-in">
-                <div id="summary-box" class="grid grid-cols-4 gap-3 mb-4">
-                </div>
-                <a id="btn-download" href="#" class="block w-full text-center bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
+                <div id="summary-box" class="grid grid-cols-4 gap-3 mb-4"></div>
+                <a id="btn-download" href="#" class="block w-full text-center btn-success text-white font-bold py-3.5 px-6 rounded-xl text-base">
                     Download Hasil (.xlsx)
                 </a>
-                <button id="btn-new" class="mt-2 w-full text-center border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2.5 px-6 rounded-lg transition-colors">
+                <button id="btn-new" class="mt-2 w-full text-center border-2 border-gray-200 hover:border-primary-300 hover:bg-primary-50 text-gray-600 font-semibold py-3 px-6 rounded-xl transition-all">
                     Proses File Lain
                 </button>
             </div>
         </section>
 
         <!-- History Section -->
-        <section class="bg-white rounded-xl shadow-sm border p-6">
-            <h2 class="text-lg font-semibold text-gray-800 mb-4">Riwayat Proses</h2>
+        <section class="card p-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4">Riwayat Proses</h2>
             <div id="history-container">
                 <p class="text-gray-400 text-sm text-center py-4">Memuat riwayat...</p>
             </div>
         </section>
     </main>
 
-    <footer class="text-center text-sm text-gray-400 py-6">
-        PDDIKTI Checker &mdash; Data dari PDDIKTI Kemdiktisaintek (data publik)
+    <footer class="text-center py-8 space-y-1">
+        <p class="text-sm font-semibold text-gray-500">PDDIKTI Checker <span class="gradient-text">by Bashid Effendi</span></p>
+        <p class="text-xs text-gray-400">Data dari PDDIKTI Kemdiktisaintek (data publik)</p>
     </footer>
 
     <script>
@@ -198,7 +252,6 @@
                     return;
                 }
 
-                // Update progress bar
                 if (data.total > 0) {
                     const pct = Math.round((data.current / data.total) * 100);
                     progressBar.style.width = pct + '%';
@@ -206,14 +259,13 @@
                     progressPercent.textContent = pct + '%';
                 }
 
-                // Append logs
                 if (data.logs) {
                     data.logs.forEach(log => {
-                        const color = log.status.includes('CACHED') ? 'text-blue-500' :
-                                      log.status.includes('Ditemukan') ? 'text-green-600' :
-                                      log.status.includes('Tidak ditemukan') ? 'text-red-500' :
-                                      log.status.includes('tidak cocok') ? 'text-yellow-600' :
-                                      'text-gray-600';
+                        const color = log.status.includes('CACHED') ? 'text-primary-500' :
+                                      log.status.includes('Ditemukan') ? 'text-mint-500' :
+                                      log.status.includes('Tidak ditemukan') ? 'text-coral-500' :
+                                      log.status.includes('tidak cocok') ? 'text-amber-500' :
+                                      'text-gray-500';
                         const el = document.createElement('p');
                         el.className = color;
                         el.textContent = `[${log.index}/${log.total}] ${log.nama} — ${log.status}`;
@@ -222,31 +274,30 @@
                     logContainer.scrollTop = logContainer.scrollHeight;
                 }
 
-                // Done
                 if (data.status === 'done') {
                     evtSource.close();
                     progressStatus.textContent = 'Selesai';
-                    progressStatus.className = 'status-badge bg-green-100 text-green-700';
+                    progressStatus.className = 'status-badge bg-mint-100 text-green-700';
                     progressBar.style.width = '100%';
                     progressPercent.textContent = '100%';
 
                     const s = data.summary;
                     summaryBox.innerHTML = `
-                        <div class="bg-gray-50 rounded-lg p-3 text-center">
-                            <p class="text-2xl font-bold text-gray-800">${s.total}</p>
-                            <p class="text-xs text-gray-500">Total</p>
+                        <div class="bg-primary-50 rounded-xl p-3 text-center">
+                            <p class="text-2xl font-extrabold text-primary-700">${s.total}</p>
+                            <p class="text-xs text-primary-400 font-medium">Total</p>
                         </div>
-                        <div class="bg-green-50 rounded-lg p-3 text-center">
-                            <p class="text-2xl font-bold text-green-600">${s.found}</p>
-                            <p class="text-xs text-gray-500">Ditemukan</p>
+                        <div class="bg-mint-50 rounded-xl p-3 text-center">
+                            <p class="text-2xl font-extrabold text-green-600">${s.found}</p>
+                            <p class="text-xs text-green-400 font-medium">Ditemukan</p>
                         </div>
-                        <div class="bg-red-50 rounded-lg p-3 text-center">
-                            <p class="text-2xl font-bold text-red-600">${s.not_found}</p>
-                            <p class="text-xs text-gray-500">Tidak Ditemukan</p>
+                        <div class="bg-coral-50 rounded-xl p-3 text-center">
+                            <p class="text-2xl font-extrabold text-coral-500">${s.not_found}</p>
+                            <p class="text-xs text-coral-300 font-medium">Tidak Ditemukan</p>
                         </div>
-                        <div class="bg-yellow-50 rounded-lg p-3 text-center">
-                            <p class="text-2xl font-bold text-yellow-600">${s.no_match}</p>
-                            <p class="text-xs text-gray-500">Tidak Cocok</p>
+                        <div class="bg-amber-50 rounded-xl p-3 text-center">
+                            <p class="text-2xl font-extrabold text-amber-600">${s.no_match}</p>
+                            <p class="text-xs text-amber-400 font-medium">Tidak Cocok</p>
                         </div>
                     `;
 
@@ -263,12 +314,9 @@
                 }
             };
 
-            evtSource.onerror = () => {
-                evtSource.close();
-            };
+            evtSource.onerror = () => { evtSource.close(); };
         }
 
-        // New process
         btnNew.addEventListener('click', () => {
             selectedFile = null;
             fileInput.value = '';
@@ -284,32 +332,35 @@
                 const resp = await fetch('/history');
                 const data = await resp.json();
                 if (!data.length) {
-                    historyContainer.innerHTML = '<p class="text-gray-400 text-sm text-center py-4">Belum ada riwayat proses</p>';
+                    historyContainer.innerHTML = '<p class="text-gray-400 text-sm text-center py-6">Belum ada riwayat proses</p>';
                     return;
                 }
                 historyContainer.innerHTML = `
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead>
-                                <tr class="border-b text-left text-gray-500">
-                                    <th class="py-2 pr-4">File</th>
-                                    <th class="py-2 pr-4">Tanggal</th>
-                                    <th class="py-2 pr-4 text-center">Total</th>
-                                    <th class="py-2 pr-4 text-center">Ditemukan</th>
-                                    <th class="py-2 pr-4 text-center">Tidak</th>
-                                    <th class="py-2"></th>
+                                <tr class="border-b border-gray-100 text-left text-gray-400 text-xs uppercase tracking-wider">
+                                    <th class="py-2.5 pr-4">File</th>
+                                    <th class="py-2.5 pr-4">Tanggal</th>
+                                    <th class="py-2.5 pr-4 text-center">Total</th>
+                                    <th class="py-2.5 pr-4 text-center">Ditemukan</th>
+                                    <th class="py-2.5 pr-4 text-center">Tidak</th>
+                                    <th class="py-2.5"></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${data.map(h => `
-                                    <tr class="border-b hover:bg-gray-50">
-                                        <td class="py-2.5 pr-4 font-medium text-gray-700 max-w-[200px] truncate">${h.filename}</td>
-                                        <td class="py-2.5 pr-4 text-gray-500">${h.date}</td>
-                                        <td class="py-2.5 pr-4 text-center">${h.total}</td>
-                                        <td class="py-2.5 pr-4 text-center text-green-600 font-medium">${h.found}</td>
-                                        <td class="py-2.5 pr-4 text-center text-red-600 font-medium">${h.not_found}</td>
-                                        <td class="py-2.5 text-right">
-                                            <a href="/download/${h.job_id}" class="text-blue-600 hover:text-blue-800 font-medium text-xs">Download</a>
+                                    <tr class="border-b border-gray-50 hover:bg-primary-50/30 transition-colors">
+                                        <td class="py-3 pr-4 font-semibold text-gray-700 max-w-[200px] truncate">${h.filename}</td>
+                                        <td class="py-3 pr-4 text-gray-400">${h.date}</td>
+                                        <td class="py-3 pr-4 text-center font-bold text-gray-600">${h.total}</td>
+                                        <td class="py-3 pr-4 text-center font-bold text-green-500">${h.found}</td>
+                                        <td class="py-3 pr-4 text-center font-bold text-coral-500">${h.not_found}</td>
+                                        <td class="py-3 text-right">
+                                            <a href="/download/${h.job_id}" class="inline-flex items-center gap-1 text-primary-600 hover:text-primary-700 font-semibold text-xs bg-primary-50 hover:bg-primary-100 px-2.5 py-1 rounded-lg transition-all">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3"/></svg>
+                                                Download
+                                            </a>
                                         </td>
                                     </tr>
                                 `).join('')}
@@ -322,7 +373,6 @@
             }
         }
 
-        // Load history on page load
         loadHistory();
     </script>
 </body>
