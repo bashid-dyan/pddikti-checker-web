@@ -146,6 +146,15 @@ def progress(job_id):
     """SSE endpoint for realtime progress."""
     def generate():
         last_sent = 0
+        # Wait briefly for job to appear (race condition with background thread)
+        retries = 0
+        while job_id not in jobs and retries < 10:
+            import time
+            time.sleep(0.5)
+            retries += 1
+        if job_id not in jobs:
+            yield f"data: {json.dumps({'error': 'Job tidak ditemukan'})}\n\n"
+            return
         while True:
             job = jobs.get(job_id)
             if not job:
@@ -201,7 +210,7 @@ def download(job_id):
                 download_name=f
             )
 
-    return jsonify({'error': 'File tidak ditemukan'}), 404
+    return jsonify({'error': 'File tidak ditemukan. Hasil lama terhapus setelah server restart, silakan proses ulang.'}), 404
 
 
 @app.route('/history')
