@@ -17,28 +17,12 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_DIR = os.path.join(BASE_DIR, 'uploads')
 RESULT_DIR = os.path.join(BASE_DIR, 'results')
-HISTORY_FILE = os.path.join(BASE_DIR, 'history.json')
 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(RESULT_DIR, exist_ok=True)
 
 # In-memory job tracking
 jobs = {}
-# Lock for thread-safe history file access
-history_lock = threading.Lock()
-
-
-def load_history():
-    if os.path.exists(HISTORY_FILE):
-        with open(HISTORY_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
-    return []
-
-
-def save_history(history):
-    with history_lock:
-        with open(HISTORY_FILE, 'w', encoding='utf-8') as f:
-            json.dump(history, f, ensure_ascii=False, indent=2)
 
 
 def process_job(job_id, input_path, output_path, original_filename):
@@ -63,21 +47,6 @@ def process_job(job_id, input_path, output_path, original_filename):
 
         jobs[job_id]['status'] = 'done'
         jobs[job_id]['summary'] = summary
-
-        # Save to history
-        history = load_history()
-        history.insert(0, {
-            'job_id': job_id,
-            'filename': original_filename,
-            'date': datetime.now().strftime('%Y-%m-%d %H:%M'),
-            'total': summary['total'],
-            'found': summary['found'],
-            'not_found': summary['not_found'],
-            'no_match': summary['no_match'],
-        })
-        # Keep last 50 entries
-        history = history[:50]
-        save_history(history)
 
     except Exception as e:
         jobs[job_id]['status'] = 'error'
@@ -212,10 +181,6 @@ def download(job_id):
 
     return jsonify({'error': 'File tidak ditemukan. Hasil lama terhapus setelah server restart, silakan proses ulang.'}), 404
 
-
-@app.route('/history')
-def history():
-    return jsonify(load_history())
 
 
 if __name__ == '__main__':
