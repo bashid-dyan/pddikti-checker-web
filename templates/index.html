@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDDIKTI Checker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .drop-zone.dragover { border-color: #3b82f6; background: #eff6ff; }
+        #log-container { max-height: 320px; overflow-y: auto; }
+        #log-container::-webkit-scrollbar { width: 6px; }
+        #log-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .status-badge { display: inline-block; padding: 2px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white border-b shadow-sm">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center gap-3">
+            <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold text-gray-900">PDDIKTI Checker</h1>
+                <p class="text-sm text-gray-500">Cek status kemahasiswaan otomatis dari PDDIKTI</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-8 space-y-6">
+        <!-- Upload Section -->
+        <section id="upload-section" class="bg-white rounded-xl shadow-sm border p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Upload File Excel</h2>
+            <div id="drop-zone" class="drop-zone border-2 border-dashed border-gray-300 rounded-xl p-10 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all">
+                <svg class="mx-auto w-12 h-12 text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                </svg>
+                <p class="text-gray-600 font-medium">Drag & drop file Excel di sini</p>
+                <p class="text-sm text-gray-400 mt-1">atau klik untuk pilih file (.xlsx)</p>
+                <input type="file" id="file-input" accept=".xlsx" class="hidden">
+            </div>
+            <div id="file-info" class="hidden mt-3 p-3 bg-blue-50 rounded-lg flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span id="file-name" class="text-sm font-medium text-blue-800"></span>
+                </div>
+                <button id="btn-remove" class="text-sm text-red-500 hover:text-red-700">Hapus</button>
+            </div>
+            <button id="btn-upload" class="hidden mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
+                Mulai Proses
+            </button>
+        </section>
+
+        <!-- Progress Section -->
+        <section id="progress-section" class="hidden bg-white rounded-xl shadow-sm border p-6 fade-in">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-800">Proses Pengecekan</h2>
+                <span id="progress-status" class="status-badge bg-yellow-100 text-yellow-700">Memproses</span>
+            </div>
+            <!-- Progress Bar -->
+            <div class="mb-4">
+                <div class="flex justify-between text-sm text-gray-600 mb-1">
+                    <span id="progress-text">0 / 0</span>
+                    <span id="progress-percent">0%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-3">
+                    <div id="progress-bar" class="bg-blue-600 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+            <!-- Log -->
+            <div id="log-container" class="bg-gray-50 rounded-lg p-3 font-mono text-xs space-y-1">
+                <p class="text-gray-400">Menunggu data...</p>
+            </div>
+            <!-- Download button (appears when done) -->
+            <div id="download-section" class="hidden mt-4 fade-in">
+                <div id="summary-box" class="grid grid-cols-4 gap-3 mb-4">
+                </div>
+                <a id="btn-download" href="#" class="block w-full text-center bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
+                    Download Hasil (.xlsx)
+                </a>
+                <button id="btn-new" class="mt-2 w-full text-center border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2.5 px-6 rounded-lg transition-colors">
+                    Proses File Lain
+                </button>
+            </div>
+        </section>
+
+        <!-- History Section -->
+        <section class="bg-white rounded-xl shadow-sm border p-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Riwayat Proses</h2>
+            <div id="history-container">
+                <p class="text-gray-400 text-sm text-center py-4">Memuat riwayat...</p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-center text-sm text-gray-400 py-6">
+        PDDIKTI Checker &mdash; Data dari PDDIKTI Kemdiktisaintek (data publik)
+    </footer>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const fileInfo = document.getElementById('file-info');
+        const fileName = document.getElementById('file-name');
+        const btnUpload = document.getElementById('btn-upload');
+        const btnRemove = document.getElementById('btn-remove');
+        const uploadSection = document.getElementById('upload-section');
+        const progressSection = document.getElementById('progress-section');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        const progressPercent = document.getElementById('progress-percent');
+        const progressStatus = document.getElementById('progress-status');
+        const logContainer = document.getElementById('log-container');
+        const downloadSection = document.getElementById('download-section');
+        const btnDownload = document.getElementById('btn-download');
+        const btnNew = document.getElementById('btn-new');
+        const summaryBox = document.getElementById('summary-box');
+        const historyContainer = document.getElementById('history-container');
+
+        let selectedFile = null;
+
+        // Drag & Drop
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) selectFile(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', () => { if (fileInput.files.length) selectFile(fileInput.files[0]); });
+
+        function selectFile(file) {
+            if (!file.name.toLowerCase().endsWith('.xlsx')) {
+                alert('File harus berformat .xlsx');
+                return;
+            }
+            selectedFile = file;
+            fileName.textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+            fileInfo.classList.remove('hidden');
+            btnUpload.classList.remove('hidden');
+        }
+
+        btnRemove.addEventListener('click', () => {
+            selectedFile = null;
+            fileInput.value = '';
+            fileInfo.classList.add('hidden');
+            btnUpload.classList.add('hidden');
+        });
+
+        // Upload
+        btnUpload.addEventListener('click', async () => {
+            if (!selectedFile) return;
+            btnUpload.disabled = true;
+            btnUpload.textContent = 'Mengupload...';
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            try {
+                const resp = await fetch('/upload', { method: 'POST', body: formData });
+                const data = await resp.json();
+                if (data.error) { alert(data.error); return; }
+                startProgress(data.job_id);
+            } catch (err) {
+                alert('Gagal upload: ' + err.message);
+            } finally {
+                btnUpload.disabled = false;
+                btnUpload.textContent = 'Mulai Proses';
+            }
+        });
+
+        // SSE Progress
+        function startProgress(jobId) {
+            uploadSection.classList.add('hidden');
+            progressSection.classList.remove('hidden');
+            downloadSection.classList.add('hidden');
+            logContainer.innerHTML = '';
+
+            const evtSource = new EventSource(`/progress/${jobId}`);
+
+            evtSource.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+
+                if (data.error && !data.status) {
+                    evtSource.close();
+                    progressStatus.textContent = 'Error';
+                    progressStatus.className = 'status-badge bg-red-100 text-red-700';
+                    logContainer.innerHTML += `<p class="text-red-500">Error: ${data.error}</p>`;
+                    return;
+                }
+
+                // Update progress bar
+                if (data.total > 0) {
+                    const pct = Math.round((data.current / data.total) * 100);
+                    progressBar.style.width = pct + '%';
+                    progressText.textContent = `${data.current} / ${data.total}`;
+                    progressPercent.textContent = pct + '%';
+                }
+
+                // Append logs
+                if (data.logs) {
+                    data.logs.forEach(log => {
+                        const color = log.status.includes('CACHED') ? 'text-blue-500' :
+                                      log.status.includes('Ditemukan') ? 'text-green-600' :
+                                      log.status.includes('Tidak ditemukan') ? 'text-red-500' :
+                                      log.status.includes('tidak cocok') ? 'text-yellow-600' :
+                                      'text-gray-600';
+                        const el = document.createElement('p');
+                        el.className = color;
+                        el.textContent = `[${log.index}/${log.total}] ${log.nama} — ${log.status}`;
+                        logContainer.appendChild(el);
+                    });
+                    logContainer.scrollTop = logContainer.scrollHeight;
+                }
+
+                // Done
+                if (data.status === 'done') {
+                    evtSource.close();
+                    progressStatus.textContent = 'Selesai';
+                    progressStatus.className = 'status-badge bg-green-100 text-green-700';
+                    progressBar.style.width = '100%';
+                    progressPercent.textContent = '100%';
+
+                    const s = data.summary;
+                    summaryBox.innerHTML = `
+                        <div class="bg-gray-50 rounded-lg p-3 text-center">
+                            <p class="text-2xl font-bold text-gray-800">${s.total}</p>
+                            <p class="text-xs text-gray-500">Total</p>
+                        </div>
+                        <div class="bg-green-50 rounded-lg p-3 text-center">
+                            <p class="text-2xl font-bold text-green-600">${s.found}</p>
+                            <p class="text-xs text-gray-500">Ditemukan</p>
+                        </div>
+                        <div class="bg-red-50 rounded-lg p-3 text-center">
+                            <p class="text-2xl font-bold text-red-600">${s.not_found}</p>
+                            <p class="text-xs text-gray-500">Tidak Ditemukan</p>
+                        </div>
+                        <div class="bg-yellow-50 rounded-lg p-3 text-center">
+                            <p class="text-2xl font-bold text-yellow-600">${s.no_match}</p>
+                            <p class="text-xs text-gray-500">Tidak Cocok</p>
+                        </div>
+                    `;
+
+                    btnDownload.href = `/download/${jobId}`;
+                    downloadSection.classList.remove('hidden');
+                    loadHistory();
+                }
+
+                if (data.status === 'error') {
+                    evtSource.close();
+                    progressStatus.textContent = 'Error';
+                    progressStatus.className = 'status-badge bg-red-100 text-red-700';
+                    logContainer.innerHTML += `<p class="text-red-500">Error: ${data.error}</p>`;
+                }
+            };
+
+            evtSource.onerror = () => {
+                evtSource.close();
+            };
+        }
+
+        // New process
+        btnNew.addEventListener('click', () => {
+            selectedFile = null;
+            fileInput.value = '';
+            fileInfo.classList.add('hidden');
+            btnUpload.classList.add('hidden');
+            progressSection.classList.add('hidden');
+            uploadSection.classList.remove('hidden');
+        });
+
+        // History
+        async function loadHistory() {
+            try {
+                const resp = await fetch('/history');
+                const data = await resp.json();
+                if (!data.length) {
+                    historyContainer.innerHTML = '<p class="text-gray-400 text-sm text-center py-4">Belum ada riwayat proses</p>';
+                    return;
+                }
+                historyContainer.innerHTML = `
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b text-left text-gray-500">
+                                    <th class="py-2 pr-4">File</th>
+                                    <th class="py-2 pr-4">Tanggal</th>
+                                    <th class="py-2 pr-4 text-center">Total</th>
+                                    <th class="py-2 pr-4 text-center">Ditemukan</th>
+                                    <th class="py-2 pr-4 text-center">Tidak</th>
+                                    <th class="py-2"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.map(h => `
+                                    <tr class="border-b hover:bg-gray-50">
+                                        <td class="py-2.5 pr-4 font-medium text-gray-700 max-w-[200px] truncate">${h.filename}</td>
+                                        <td class="py-2.5 pr-4 text-gray-500">${h.date}</td>
+                                        <td class="py-2.5 pr-4 text-center">${h.total}</td>
+                                        <td class="py-2.5 pr-4 text-center text-green-600 font-medium">${h.found}</td>
+                                        <td class="py-2.5 pr-4 text-center text-red-600 font-medium">${h.not_found}</td>
+                                        <td class="py-2.5 text-right">
+                                            <a href="/download/${h.job_id}" class="text-blue-600 hover:text-blue-800 font-medium text-xs">Download</a>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } catch (err) {
+                historyContainer.innerHTML = '<p class="text-red-400 text-sm text-center py-4">Gagal memuat riwayat</p>';
+            }
+        }
+
+        // Load history on page load
+        loadHistory();
+    </script>
+</body>
+</html>
