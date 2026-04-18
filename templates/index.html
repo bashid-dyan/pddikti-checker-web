@@ -66,8 +66,33 @@
             </div>
             <h2 class="text-3xl font-extrabold text-gray-900 mb-1">PDDIKTI Checker</h2>
             <p class="text-lg text-gray-500 mb-1">by <span class="font-bold gradient-text">Bashid Effendi</span></p>
-            <p class="text-sm text-gray-400 max-w-md mx-auto">Upload file Excel berisi data mahasiswa, sistem akan otomatis mengecek status di PDDIKTI Kemdiktisaintek</p>
+            <p class="text-sm text-gray-400 max-w-md mx-auto">Cari satu mahasiswa cepat, atau upload file Excel untuk cek massal di PDDIKTI Kemdiktisaintek</p>
         </section>
+
+        <!-- Quick Search Section -->
+        <section id="search-section" class="card p-6 fade-in">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-mint-100 rounded-lg flex items-center justify-center">
+                        <svg class="w-4 h-4 text-mint-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </div>
+                    <h2 class="text-lg font-bold text-gray-800">Cari Cepat</h2>
+                </div>
+                <span class="text-xs text-gray-400">Cari 1 mahasiswa</span>
+            </div>
+            <form id="search-form" class="flex gap-2">
+                <input type="text" id="search-input" placeholder="Ketik nama lengkap atau NIM..." class="flex-1 border-2 border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:border-mint-400 outline-none" required>
+                <button type="submit" id="search-btn" class="bg-mint-500 hover:bg-mint-600 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-all">Cari</button>
+            </form>
+            <div id="search-results" class="mt-3"></div>
+        </section>
+
+        <!-- Divider -->
+        <div class="flex items-center gap-3 my-2">
+            <div class="flex-1 h-px bg-gray-200"></div>
+            <span class="text-xs text-gray-400 font-semibold">atau</span>
+            <div class="flex-1 h-px bg-gray-200"></div>
+        </div>
 
         <!-- Upload Section -->
         <section id="upload-section" class="card p-6 fade-in">
@@ -384,6 +409,132 @@
         }
 
         loadHistory();
+
+        // ============================================================
+        // QUICK SEARCH
+        // ============================================================
+        const searchForm = document.getElementById('search-form');
+        const searchInput = document.getElementById('search-input');
+        const searchBtn = document.getElementById('search-btn');
+        const searchResults = document.getElementById('search-results');
+
+        searchForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const q = searchInput.value.trim();
+            if (!q) return;
+
+            searchBtn.disabled = true;
+            searchBtn.textContent = 'Mencari...';
+            searchResults.innerHTML = '<div class="text-center py-6"><div class="inline-block w-6 h-6 border-4 border-mint-200 border-t-mint-500 rounded-full animate-spin"></div><p class="text-xs text-gray-400 mt-2">Mencari di PDDIKTI...</p></div>';
+
+            try {
+                const resp = await fetch(`/search?q=${encodeURIComponent(q)}`);
+                const data = await resp.json();
+                if (data.error) {
+                    searchResults.innerHTML = `<p class="text-sm text-red-500 text-center py-4">${data.error}</p>`;
+                    return;
+                }
+                renderSearchResults(data.results || []);
+            } catch (err) {
+                searchResults.innerHTML = `<p class="text-sm text-red-500 text-center py-4">Gagal: ${err.message}</p>`;
+            } finally {
+                searchBtn.disabled = false;
+                searchBtn.textContent = 'Cari';
+            }
+        });
+
+        function renderSearchResults(results) {
+            if (!results.length) {
+                searchResults.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">Tidak ditemukan di PDDIKTI</p>';
+                return;
+            }
+            let html = `<div class="overflow-x-auto rounded-xl border border-gray-100"><table class="w-full text-sm">
+                <thead><tr class="bg-gray-50 text-gray-400 text-xs uppercase tracking-wider">
+                    <th class="py-2.5 px-3 text-left">Nama</th>
+                    <th class="py-2.5 px-3 text-left">NIM</th>
+                    <th class="py-2.5 px-3 text-left">Perguruan Tinggi</th>
+                    <th class="py-2.5 px-3 text-left">Prodi</th>
+                    <th class="py-2.5 px-3"></th>
+                </tr></thead><tbody>`;
+            results.forEach(r => {
+                html += `<tr class="border-b border-gray-50 hover:bg-mint-50/30">
+                    <td class="py-2.5 px-3 font-semibold text-gray-700">${esc(r.nama||'-')}</td>
+                    <td class="py-2.5 px-3 text-gray-500 font-mono text-xs">${esc(r.nim||'-')}</td>
+                    <td class="py-2.5 px-3 text-gray-600 text-xs max-w-[200px]">${esc(r.nama_pt||'-')}</td>
+                    <td class="py-2.5 px-3 text-gray-500 text-xs max-w-[180px]">${esc(r.nama_prodi||r.prodi||'-')}</td>
+                    <td class="py-2.5 px-3 text-right"><button onclick="showDetail('${esc(r.id)}')" class="text-xs font-semibold text-mint-600 hover:text-mint-700 bg-mint-50 hover:bg-mint-100 px-2.5 py-1 rounded-lg">Detail</button></td>
+                </tr>`;
+            });
+            html += `</tbody></table></div>
+                <p class="text-xs text-gray-400 mt-2">${results.length} hasil${results.length>=20?' (ditampilkan 20 teratas)':''}</p>`;
+            searchResults.innerHTML = html;
+        }
+
+        async function showDetail(id) {
+            if (!id) return;
+            // Show modal/panel
+            const existing = document.getElementById('detail-modal');
+            if (existing) existing.remove();
+
+            const modal = document.createElement('div');
+            modal.id = 'detail-modal';
+            modal.className = 'fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 fade-in';
+            modal.innerHTML = `<div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl">
+                <div class="text-center py-6">
+                    <div class="inline-block w-8 h-8 border-4 border-mint-200 border-t-mint-500 rounded-full animate-spin"></div>
+                    <p class="text-sm text-gray-400 mt-2">Memuat detail...</p>
+                </div>
+            </div>`;
+            modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+            document.body.appendChild(modal);
+
+            try {
+                const resp = await fetch(`/detail?id=${encodeURIComponent(id)}`);
+                const d = await resp.json();
+                if (d.error) {
+                    modal.firstElementChild.innerHTML = `<p class="text-sm text-red-500 text-center py-4">${d.error}</p><button onclick="document.getElementById('detail-modal').remove()" class="mt-2 w-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold py-2 rounded-lg text-sm">Tutup</button>`;
+                    return;
+                }
+                const statusColor = (d.status_saat_ini||'').toLowerCase().includes('aktif') ? 'bg-mint-100 text-mint-700' :
+                                   (d.status_saat_ini||'').toLowerCase().includes('lulus') ? 'bg-primary-100 text-primary-700' :
+                                   'bg-coral-100 text-coral-500';
+                modal.firstElementChild.innerHTML = `
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-extrabold text-gray-800">Detail Mahasiswa</h3>
+                        <button onclick="document.getElementById('detail-modal').remove()" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="text-xs font-bold px-3 py-1 rounded-full ${statusColor}">${esc(d.status_saat_ini||'-')}</span>
+                            <span class="text-xs text-gray-400">${esc(d.jenjang||'')}</span>
+                        </div>
+                        ${detailRow('Nama', d.nama)}
+                        ${detailRow('NIM', d.nim)}
+                        ${detailRow('Jenis Kelamin', d.jenis_kelamin)}
+                        ${detailRow('Perguruan Tinggi', d.nama_pt)}
+                        ${detailRow('Program Studi', d.prodi)}
+                        ${detailRow('Jenjang', d.jenjang)}
+                        ${detailRow('Tahun Masuk', d.tahun_masuk)}
+                        ${detailRow('Semester Awal', d.semester_awal)}
+                    </div>
+                    <button onclick="document.getElementById('detail-modal').remove()" class="mt-4 w-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold py-2.5 rounded-xl text-sm">Tutup</button>
+                `;
+            } catch (err) {
+                modal.firstElementChild.innerHTML = `<p class="text-sm text-red-500 text-center py-4">Gagal: ${err.message}</p><button onclick="document.getElementById('detail-modal').remove()" class="mt-2 w-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold py-2 rounded-lg text-sm">Tutup</button>`;
+            }
+        }
+
+        function detailRow(label, value) {
+            if (!value) return '';
+            return `<div class="flex justify-between py-1.5 border-b border-gray-50">
+                <span class="text-gray-400 text-xs">${esc(label)}</span>
+                <span class="text-gray-700 font-medium text-xs text-right max-w-[60%]">${esc(String(value))}</span>
+            </div>`;
+        }
+
+        function esc(s) { return s==null?'':String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
     </script>
 </body>
 </html>

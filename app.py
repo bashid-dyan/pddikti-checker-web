@@ -9,7 +9,7 @@ import threading
 from datetime import datetime
 from flask import Flask, request, jsonify, send_file, Response, render_template
 from werkzeug.utils import secure_filename
-from checker import run_checker
+from checker import run_checker, api_search, api_detail
 
 app = Flask(__name__, static_folder='static', static_url_path='/static')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max
@@ -60,6 +60,35 @@ def process_job(job_id, input_path, output_path, original_filename):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+@app.route('/search')
+def search():
+    """Quick search by name or NIM — returns list of candidates."""
+    q = request.args.get('q', '').strip()
+    if not q:
+        return jsonify({'error': 'Masukkan nama atau NIM'}), 400
+    try:
+        results = api_search(q)
+        # Limit to 20 results for performance
+        return jsonify({'results': results[:20] if results else [], 'total': len(results) if results else 0})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/detail')
+def detail():
+    """Get full detail of a single student by id."""
+    id_mhs = request.args.get('id', '').strip()
+    if not id_mhs:
+        return jsonify({'error': 'ID mahasiswa harus diisi'}), 400
+    try:
+        data = api_detail(id_mhs)
+        if data:
+            return jsonify(data)
+        return jsonify({'error': 'Detail tidak ditemukan'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/template')
